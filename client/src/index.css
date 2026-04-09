@@ -1,0 +1,22 @@
+:root{
+  color-scheme: dark;
+  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  margin: 0;
+  background: #0f172a;
+}
+
+a{
+  color: #38bdf8;
+}
+
+button, input, select, textarea{
+  font-family: inherit;
+}

@@ -1,0 +1,91 @@
+.wrap{
+  display: flex;
+  justify-content: center;
+}
+
+.card{
+  width: 100%;
+  max-width: 520px;
+  border-radius: 10px;
+  background: rgba(15,23,42,0.55);
+  border: 1px solid rgba(148,163,184,0.18);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+  padding: 22px;
+  backdrop-filter: blur(14px);
+}
+
+.title{
+  margin: 0 0 6px;
+  color: rgba(226,232,240,0.96);
+  font-size: 24px;
+}
+
+.sub{
+  margin: 0 0 16px;
+  color: rgba(226,232,240,0.72);
+}
+
+.form{
+  display: grid;
+  gap: 12px;
+}
+
+.row{
+  display: grid;
+  gap: 6px;
+}
+
+.label{
+  color: rgba(226,232,240,0.85);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.input, .select{
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(30,41,59,0.55);
+  color: rgba(226,232,240,0.92);
+  padding: 11px 12px;
+  outline: none;
+}
+
+.actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.primary{
+  flex: 1;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(56,189,248,0.18);
+  border: 1px solid rgba(56,189,248,0.35);
+  color: rgba(226,232,240,0.96);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.secondary{
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(30,41,59,0.45);
+  border: 1px solid rgba(148,163,184,0.16);
+  color: rgba(226,232,240,0.9);
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error{
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.22);
+  color: rgba(226,232,240,0.92);
+  font-weight: 700;
+}
+

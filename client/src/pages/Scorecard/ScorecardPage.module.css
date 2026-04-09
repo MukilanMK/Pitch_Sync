@@ -1,0 +1,232 @@
+.wrap{
+  display: grid;
+  gap: 12px;
+}
+
+.header{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.title{
+  margin: 0;
+  color: rgba(226,232,240,0.96);
+  font-size: 22px;
+}
+.sub{
+  margin: 6px 0 0;
+  color: rgba(226,232,240,0.72);
+}
+.refresh{
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(30,41,59,0.45);
+  border: 1px solid rgba(148,163,184,0.16);
+  color: rgba(226,232,240,0.9);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 980px){
+  .grid{ grid-template-columns: 1.1fr 0.9fr; }
+}
+
+.bigCard, .card{
+  border-radius: 10px;
+  background: rgba(15,23,42,0.55);
+  border: 1px solid rgba(148,163,184,0.18);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+  backdrop-filter: blur(14px);
+}
+
+.bigCard{ overflow: hidden; }
+
+.scoreLine{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(56,189,248,0.10), transparent 85%);
+  border-bottom: 1px solid rgba(148,163,184,0.14);
+}
+
+.score{
+  color: rgba(226,232,240,0.96);
+  font-weight: 1000;
+  font-size: 44px;
+  letter-spacing: -0.5px;
+}
+.sep{ color: rgba(148,163,184,0.7); }
+.overs{
+  color: rgba(226,232,240,0.76);
+  font-weight: 800;
+}
+
+.pad{ padding: 16px; }
+
+.sectionTitle{
+  color: rgba(226,232,240,0.9);
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.btnGrid{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.runBtn{
+  height: 64px;
+  border-radius: 10px;
+  background: rgba(56,189,248,0.18);
+  border: 1px solid rgba(56,189,248,0.35);
+  color: rgba(226,232,240,0.96);
+  font-weight: 1000;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.btnRow{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.input, .select{
+  height: 46px;
+  border-radius: 10px;
+  background: rgba(2,6,23,0.35);
+  border: 1px solid rgba(148,163,184,0.18);
+  color: rgba(226,232,240,0.92);
+  padding: 10px 12px;
+  outline: none;
+}
+.input::placeholder{
+  color: rgba(148,163,184,0.75);
+}
+.select{
+  cursor: pointer;
+}
+
+.extraBtn{
+  height: 54px;
+  border-radius: 10px;
+  background: rgba(30,41,59,0.55);
+  border: 1px solid rgba(148,163,184,0.16);
+  color: rgba(226,232,240,0.92);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.wicketBtn{
+  width: 100%;
+  height: 58px;
+  border-radius: 10px;
+  background: rgba(239,68,68,0.14);
+  border: 1px solid rgba(239,68,68,0.34);
+  color: rgba(226,232,240,0.96);
+  font-weight: 1000;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.card{ padding: 16px; }
+.list{
+  display: grid;
+  gap: 10px;
+}
+.delivery{
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(30,41,59,0.55);
+  border: 1px solid rgba(148,163,184,0.14);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.ball{
+  color: rgba(226,232,240,0.96);
+  font-weight: 1000;
+}
+.meta{ display: flex; gap: 8px; }
+.who{
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(148,163,184,0.10);
+  border: 1px solid rgba(148,163,184,0.18);
+  color: rgba(226,232,240,0.86);
+  font-weight: 900;
+  font-size: 12px;
+}
+.extraTag{
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(56,189,248,0.10);
+  border: 1px solid rgba(56,189,248,0.18);
+  color: rgba(226,232,240,0.9);
+  font-weight: 900;
+  font-size: 12px;
+}
+.wicketTag{
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.22);
+  color: rgba(226,232,240,0.92);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.table{
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.rowHead, .row{
+  display: grid;
+  grid-template-columns: 1.4fr repeat(5, 0.6fr) 2fr;
+  gap: 10px;
+  align-items: center;
+}
+.rowHead{
+  color: rgba(226,232,240,0.8);
+  font-weight: 900;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.row{
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(30,41,59,0.40);
+  border: 1px solid rgba(148,163,184,0.12);
+  color: rgba(226,232,240,0.92);
+  font-weight: 700;
+}
+
+.muted{
+  color: rgba(148,163,184,0.9);
+}
+
+.error{
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.22);
+  color: rgba(226,232,240,0.92);
+  font-weight: 700;
+}
+

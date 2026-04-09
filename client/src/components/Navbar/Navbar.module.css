@@ -1,0 +1,109 @@
+.wrap{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(14px);
+  background: rgba(15, 23, 42, 0.55);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.inner{
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(226,232,240,0.92);
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+}
+
+.brandMark{
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #38bdf8, #22c55e);
+  box-shadow: 0 10px 30px rgba(56,189,248,0.22);
+}
+
+.nav{
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.link{
+  color: rgba(226,232,240,0.8);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.active{
+  composes: link;
+  color: rgba(226,232,240,0.95);
+  background: rgba(56,189,248,0.12);
+  border: 1px solid rgba(56,189,248,0.2);
+}
+
+.right{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userPill{
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(30,41,59,0.65);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+.userName{
+  color: rgba(226,232,240,0.92);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.1;
+}
+.userRole{
+  color: rgba(148,163,184,0.92);
+  font-size: 12px;
+}
+
+.logout{
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.22);
+  color: rgba(226,232,240,0.95);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.linkBtn{
+  composes: link;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(30,41,59,0.35);
+}
+
+.primaryBtn{
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(56,189,248,0.18);
+  border: 1px solid rgba(56,189,248,0.32);
+  color: rgba(226,232,240,0.95);
+  font-weight: 800;
+  text-decoration: none;
+}
+
