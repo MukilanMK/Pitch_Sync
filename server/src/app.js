@@ -13,20 +13,58 @@ const matchRoutes = require("./routes/matchRoutes");
 const statsRoutes = require("./routes/statsRoutes");
 const userRoutes = require("./routes/userRoutes");
 
+const normalizeOrigins = (clientOrigin) => {
+  if (!clientOrigin) {
+    return [];
+  }
+
+  return clientOrigin
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+};
+
+const isAllowedByPattern = (origin, pattern) => {
+  if (!pattern) {
+    return false;
+  }
+
+  if (pattern === "*") {
+    return true;
+  }
+
+  if (pattern.includes("*")) {
+    const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    const regex = new RegExp(`^${escaped}$`);
+    return regex.test(origin);
+  }
+
+  return origin === pattern;
+};
+
+const isAllowedOrigin = (origin, allowedOrigins) => {
+  if (!origin) {
+    return true;
+  }
+
+  if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+    return true;
+  }
+
+  return allowedOrigins.some((allowedOrigin) => isAllowedByPattern(origin, allowedOrigin));
+};
+
 const createApp = ({ clientOrigin }) => {
   const app = express();
 
-  const allowedOrigins = clientOrigin ? clientOrigin.split(',').map(o => o.trim()) : true;
+  const allowedOrigins = normalizeOrigins(clientOrigin);
   app.use(
     cors({
       origin: function (origin, callback) {
-        if (!origin || allowedOrigins === true || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else if (origin.startsWith('http://localhost:')) {
-          // allow any localhost port in development
+        if (isAllowedOrigin(origin, allowedOrigins)) {
           callback(null, true);
         } else {
-          callback(new Error('Not allowed by CORS'));
+          callback(new Error("Not allowed by CORS"));
         }
       },
       credentials: true,
