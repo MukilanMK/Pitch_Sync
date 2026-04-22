@@ -1,22 +1,131 @@
-:root{
-  color-scheme: dark;
-  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, "Segoe UI", Roboto, Arial, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-score: 'Space Grotesk', sans-serif;
+  
+  --primary-accent: #f472b6; /* Hot Pink */
+  --primary-accent-dark: #d946ef; /* Magenta */
+  --secondary-accent: #22d3ee; /* Electric Cyan */
+  --secondary-success: #4ade80; /* Neon Mint */
+  --destructive: #e11d48;
 }
 
-*{ box-sizing: border-box; }
+/* Night / Midnight Mode (Default) */
+body.theme-night {
+  --bg-color: #1e1b4b; /* Base Midnight Blue */
+  
+  /* Vaporwave Mesh Gradient for Night */
+  --bg-gradient: 
+    radial-gradient(at 0% 0%, hsla(261, 73%, 23%, 1) 0, transparent 50%), 
+    radial-gradient(at 100% 100%, hsla(245, 47%, 20%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(330, 80%, 20%, 0.3) 0, transparent 60%);
+    
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.7);
+  
+  /* Glassmorphism Tokens for Dark Mode */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-surface: rgba(255, 255, 255, 0.08);
+  --glass-surface-active: rgba(255, 255, 255, 0.12);
+  
+  color-scheme: dark;
+}
 
-body{
+/* Day / Sunset Mode */
+body.theme-day {
+  --bg-color: #ffecd2; /* Base Soft Peach */
+  
+  /* Vaporwave Mesh Gradient for Sunset */
+  --bg-gradient: 
+    radial-gradient(at 0% 0%, hsla(16, 100%, 80%, 1) 0, transparent 50%), 
+    radial-gradient(at 100% 100%, hsla(330, 100%, 85%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(45, 100%, 80%, 0.5) 0, transparent 60%);
+    
+  --text-primary: #0f172a; /* Deep Slate */
+  --text-muted: rgba(15, 23, 42, 0.7);
+  
+  /* Glassmorphism Tokens for Light Mode */
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-surface: rgba(255, 255, 255, 0.55);
+  --glass-surface-active: rgba(255, 255, 255, 0.7);
+  
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
   margin: 0;
-  background: #0f172a;
+  background-color: var(--bg-color);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  transition: background-color 0.5s ease, color 0.3s ease;
 }
 
-a{
-  color: #38bdf8;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }
 
-button, input, select, textarea{
+a {
+  color: var(--primary-accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button, input, select, textarea {
   font-family: inherit;
+}
+
+/* --- Vaporwave & Glassmorphism Utilities --- */
+
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.glass-card:hover {
+  background: var(--glass-surface);
+}
+
+.glow-pink {
+  box-shadow: 0 0 15px rgba(244, 114, 182, 0.4);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+}
+
+/* Custom Scrollbar for a polished look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--glass-surface-active);
 }

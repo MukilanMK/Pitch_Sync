@@ -5,71 +5,87 @@
 
 .card{
   width: 100%;
-  border-radius: 10px;
-  background: rgba(15,23,42,0.55);
-  border: 1px solid rgba(148,163,184,0.18);
-  box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+  border-radius: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
   padding: 26px;
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
 }
 
 .kicker{
   display: inline-flex;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(56,189,248,0.22);
-  background: rgba(56,189,248,0.10);
-  color: rgba(226,232,240,0.9);
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--secondary-accent);
   font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.3px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
 }
 
 .title{
   margin: 14px 0 10px;
-  color: rgba(226,232,240,0.96);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-weight: 800;
   font-size: 44px;
-  line-height: 1.05;
+  line-height: 1.1;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
 .sub{
-  margin: 0 0 18px;
-  color: rgba(226,232,240,0.78);
+  margin: 0 0 24px;
+  color: var(--text-muted);
   font-size: 16px;
   max-width: 70ch;
+  line-height: 1.5;
 }
 
 .actions{
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .primary{
-  border-radius: 10px;
-  padding: 12px 14px;
-  background: rgba(56,189,248,0.18);
-  border: 1px solid rgba(56,189,248,0.35);
-  color: rgba(226,232,240,0.96);
-  font-weight: 900;
+  border-radius: 8px;
+  padding: 12px 20px;
+  background: var(--primary-accent);
+  color: #fff;
+  font-weight: 700;
   text-decoration: none;
+  font-size: 15px;
+  box-shadow: var(--neon-glow-pink);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  transition: all 0.2s ease;
+}
+.primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.6);
 }
 
 .secondary{
-  border-radius: 10px;
-  padding: 12px 14px;
-  background: rgba(30,41,59,0.45);
-  border: 1px solid rgba(148,163,184,0.16);
-  color: rgba(226,232,240,0.9);
-  font-weight: 800;
+  border-radius: 8px;
+  padding: 12px 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-weight: 600;
   text-decoration: none;
+  font-size: 15px;
+  transition: background 0.2s;
+}
+.secondary:hover{
+  background: var(--glass-surface);
 }
 
 .split{
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
 @media (min-width: 760px){
@@ -77,19 +93,22 @@
 }
 
 .pill{
-  border-radius: 10px;
-  padding: 14px;
-  background: rgba(30,41,59,0.55);
-  border: 1px solid rgba(148,163,184,0.14);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
 }
 
 .pillTitle{
-  color: rgba(226,232,240,0.94);
-  font-weight: 900;
-  margin-bottom: 6px;
+  color: var(--secondary-accent);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 8px;
 }
 
 .pillBody{
-  color: rgba(226,232,240,0.72);
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 

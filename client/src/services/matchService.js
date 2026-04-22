@@ -31,5 +31,10 @@ export const matchService = {
     const { data } = await api.post(`/matches/${id}/deliveries`, payload);
     return data;
   },
+  undoDelivery: async (token, id) => {
+    const api = createApiClient({ token });
+    const { data } = await api.post(`/matches/${id}/deliveries/undo`);
+    return data;
+  },
 };
 

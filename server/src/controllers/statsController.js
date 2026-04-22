@@ -20,13 +20,13 @@ const getMyStats = async (req, res, next) => {
 
     for (const m of matches) {
       for (const d of m.deliveries || []) {
-        const batter = String(d.batterId);
-        const bowler = String(d.bowlerId);
+        const batter = d.batterId ? String(d.batterId) : "";
+        const bowler = d.bowlerId ? String(d.bowlerId) : "";
         const legal = isLegalBall(d);
         const bat = Number(d.runsOffBat || 0);
         const extra = d.extraType !== "None" ? Number(d.extraRuns || 0) : 0;
         const isWicket = d.wicket?.kind && d.wicket.kind !== "None";
-        const outId = d.wicket?.playerOutId ? String(d.wicket.playerOutId) : batter;
+        const outId = d.wicket?.playerOutId ? String(d.wicket.playerOutId) : batter || "";
 
         if (batter === userId) {
           battingRuns += bat;

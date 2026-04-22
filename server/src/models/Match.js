@@ -6,9 +6,12 @@ const TOSS_DECISIONS = ["Bat", "Bowl"];
 const matchDeliverySchema = new mongoose.Schema(
   {
     inningsIndex: { type: Number, required: true, min: 0, max: 1 },
-    batterId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    nonStrikerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    bowlerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    batterId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+    batterName: { type: String, trim: true, default: "" },
+    nonStrikerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    nonStrikerName: { type: String, trim: true, default: "" },
+    bowlerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+    bowlerName: { type: String, trim: true, default: "" },
     runsOffBat: { type: Number, default: 0, min: 0, max: 6 },
     extraType: { type: String, enum: ["None", "Wide", "NoBall", "Bye", "LegBye", "Penalty"], default: "None" },
     extraRuns: { type: Number, default: 0, min: 0, max: 10 },
@@ -32,7 +35,9 @@ const matchDeliverySchema = new mongoose.Schema(
         default: "None",
       },
       playerOutId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      playerOutName: { type: String, trim: true, default: "" },
       fielderId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      fielderName: { type: String, trim: true, default: "" },
     },
     timestamp: { type: Date, default: Date.now },
   },
@@ -43,8 +48,11 @@ const teamSchema = new mongoose.Schema(
   {
     name: { type: String, trim: true, default: "" },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    guestMembers: [{ type: String, trim: true }],
     captainId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    captainName: { type: String, trim: true, default: "" },
     wicketKeeperId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    wicketKeeperName: { type: String, trim: true, default: "" },
   },
   { _id: false }
 );
@@ -57,8 +65,11 @@ const inningsSchema = new mongoose.Schema(
     totalWickets: { type: Number, default: 0, min: 0 },
     legalDeliveries: { type: Number, default: 0, min: 0 },
     strikerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    strikerName: { type: String, trim: true, default: "" },
     nonStrikerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    nonStrikerName: { type: String, trim: true, default: "" },
     currentBowlerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    currentBowlerName: { type: String, trim: true, default: "" },
     completed: { type: Boolean, default: false },
   },
   { _id: false }

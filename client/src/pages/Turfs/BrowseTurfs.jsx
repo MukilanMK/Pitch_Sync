@@ -71,7 +71,7 @@ export const BrowseTurfs = () => {
         </div>
 
         {canBook ? (
-          <div className={styles.slot}>
+          <div className={`glass-card ${styles.slot}`}>
             <div className={styles.slotLabel}>Slot</div>
             <input className={styles.input} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             <select className={styles.input} value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>

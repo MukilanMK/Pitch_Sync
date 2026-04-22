@@ -1,45 +1,50 @@
 .wrap{ display: grid; gap: 12px; }
 .header{ margin-bottom: 6px; }
-.title{ margin: 0; color: rgba(226,232,240,0.96); font-size: 22px; }
-.sub{ margin: 6px 0 0; color: rgba(226,232,240,0.72); }
+.title{ margin: 0; color: var(--text-primary); font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;}
+.sub{ margin: 6px 0 0; color: var(--stadium-neon); font-weight: 700; text-shadow: var(--jumbotron-glow);}
 
 .card{
-  border-radius: 10px;
-  background: rgba(15,23,42,0.55);
-  border: 1px solid rgba(148,163,184,0.18);
-  box-shadow: 0 18px 45px rgba(0,0,0,0.35);
-  padding: 16px;
+  border-radius: 12px;
+  background: var(--glass-card);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.4);
+  padding: 20px;
   backdrop-filter: blur(14px);
 }
 .row{ display: grid; gap: 6px; margin-bottom: 12px; }
 .row2{ display: grid; grid-template-columns: 1fr; gap: 12px; }
 @media (min-width: 740px){ .row2{ grid-template-columns: 1fr 1fr; } }
 
-.label{ color: rgba(226,232,240,0.85); font-weight: 800; font-size: 13px; }
+.label{ color: var(--text-muted); font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
 .input{
-  border-radius: 10px;
-  border: 1px solid rgba(148,163,184,0.18);
-  background: rgba(30,41,59,0.55);
-  color: rgba(226,232,240,0.92);
-  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: rgba(0,0,0,0.3);
+  color: var(--text-primary);
+  padding: 12px 12px;
   outline: none;
+  font-weight: 700;
 }
 .primary{
-  border-radius: 10px;
-  padding: 12px 14px;
-  background: rgba(56,189,248,0.18);
-  border: 1px solid rgba(56,189,248,0.35);
-  color: rgba(226,232,240,0.96);
+  border-radius: 8px;
+  padding: 14px 20px;
+  background: var(--stadium-neon);
+  border: 1px solid #ca8a04;
+  color: #000;
   font-weight: 900;
   cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(234, 179, 8, 0.4);
 }
-.muted{ color: rgba(148,163,184,0.9); }
+.primary:hover{ background: #facc15; }
+.muted{ color: var(--text-muted); }
 .error{
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: rgba(239,68,68,0.12);
-  border: 1px solid rgba(239,68,68,0.22);
-  color: rgba(226,232,240,0.92);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: rgba(220,38,38,0.2);
+  border: 1px solid var(--cricket-ball);
+  color: var(--text-primary);
   font-weight: 700;
 }
 

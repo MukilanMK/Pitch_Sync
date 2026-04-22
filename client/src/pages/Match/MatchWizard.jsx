@@ -36,9 +36,13 @@ export const MatchWizard = () => {
   const [loading, setLoading] = useState(true);
 
   const [manualUserIds, setManualUserIds] = useState("");
+  const [resolvedPlayers, setResolvedPlayers] = useState([]);
+  const [guestPlayers, setGuestPlayers] = useState([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(() => new Set());
 
   const [teamMode, setTeamMode] = useState("Random"); // Random | Manual
+  const [teamAName, setTeamAName] = useState("Team A");
+  const [teamBName, setTeamBName] = useState("Team B");
   const [teamAIds, setTeamAIds] = useState(() => new Set());
   const [teamBIds, setTeamBIds] = useState(() => new Set());
   const [captainA, setCaptainA] = useState("");
@@ -56,7 +60,7 @@ export const MatchWizard = () => {
         if (!mounted) return;
         setBookings(bData.bookings || []);
         setFriends(fData.friends || []);
-        setSelectedPlayerIds(new Set([user?.id].filter(Boolean)));
+        setSelectedPlayerIds(new Set([user?._id || user?.id].filter(Boolean)));
       } catch (err) {
         if (mounted) setError(err?.response?.data?.message || "Failed to load match setup data");
       } finally {
@@ -71,8 +75,11 @@ export const MatchWizard = () => {
 
   const allSelectablePlayers = useMemo(() => {
     const list = [];
-    if (user?.id) list.push({ _id: user.id, name: user.name, userId: user.userId });
+    const currentId = user?._id || user?.id;
+    if (currentId) list.push({ _id: currentId, name: user.name, userId: user.userId });
     friends.forEach((f) => list.push(f));
+    resolvedPlayers.forEach((p) => list.push(p));
+    guestPlayers.forEach((g) => list.push(g));
     // de-dupe by _id
     const seen = new Set();
     return list.filter((x) => {
@@ -81,7 +88,7 @@ export const MatchWizard = () => {
       seen.add(k);
       return true;
     });
-  }, [friends, user?.id, user?.name, user?.userId]);
+  }, [friends, guestPlayers, resolvedPlayers, user?._id, user?.id, user?.name, user?.userId]);
 
   const selectedPlayers = useMemo(() => {
     const ids = selectedPlayerIds;
@@ -106,7 +113,8 @@ export const MatchWizard = () => {
       if (next.has(key)) next.delete(key);
       else next.add(key);
       // ensure current user always included
-      if (user?.id) next.add(String(user.id));
+      const currentId = user?._id || user?.id;
+      if (currentId) next.add(String(currentId));
       return next;
     });
   };
@@ -116,6 +124,52 @@ export const MatchWizard = () => {
       .split(/\r?\n|,/g)
       .map((s) => s.trim())
       .filter(Boolean);
+  };
+
+  const resolveManualPlayers = async () => {
+    const manualHandles = parseManualIds();
+    if (manualHandles.length === 0) return;
+    setError("");
+    try {
+      const resolved = await userService.resolve(token, manualHandles);
+      const resolvedUsers = (resolved.users || []).map((u) => ({
+        _id: String(u._id),
+        name: u.name || "Player",
+        userId: u.userId || "",
+      }));
+      
+      let nextGuests = [];
+      if (resolved?.missing?.length) {
+        nextGuests = resolved.missing.map((name) => ({ _id: `guest:${name}`, name, userId: "guest", isGuest: true }));
+      }
+
+      if (resolvedUsers.length) {
+        setResolvedPlayers((prev) => {
+          const byId = new Map(prev.map((p) => [String(p._id), p]));
+          resolvedUsers.forEach((p) => byId.set(String(p._id), p));
+          return Array.from(byId.values());
+        });
+      }
+
+      if (nextGuests.length) {
+        setGuestPlayers((prev) => {
+          const byId = new Map(prev.map((p) => [String(p._id), p]));
+          nextGuests.forEach((g) => byId.set(String(g._id), g));
+          return Array.from(byId.values());
+        });
+      }
+
+      setSelectedPlayerIds((prev) => {
+        const next = new Set(prev);
+        resolvedUsers.forEach((u) => next.add(String(u._id)));
+        nextGuests.forEach((g) => next.add(String(g._id)));
+        return next;
+      });
+
+      setManualUserIds("");
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to resolve players");
+    }
   };
 
   const onCreate = async () => {
@@ -133,22 +187,85 @@ export const MatchWizard = () => {
       // Add typed userIds (handles like rohit_07)
       const manualHandles = parseManualIds();
       const allIds = new Set(selectedPlayers.map((p) => String(p._id)));
+      const effectiveTeamAIds = new Set(teamAIds);
+      const effectiveTeamBIds = new Set(teamBIds);
       if (manualHandles.length > 0) {
         const resolved = await userService.resolve(token, manualHandles);
-        if (resolved?.missing?.length) {
-          setError(`Unknown userId(s): ${resolved.missing.join(", ")}`);
-          return;
+        const resolvedUsers = (resolved.users || []).map((u) => ({
+          _id: String(u._id),
+          name: u.name || "Player",
+          userId: u.userId || "",
+        }));
+        resolvedUsers.forEach((u) => allIds.add(String(u._id)));
+        if (resolvedUsers.length) {
+          setResolvedPlayers((prev) => {
+            const byId = new Map(prev.map((p) => [String(p._id), p]));
+            resolvedUsers.forEach((p) => byId.set(String(p._id), p));
+            return Array.from(byId.values());
+          });
         }
-        (resolved.users || []).forEach((u) => allIds.add(String(u._id)));
+        let unresolvedGuestIds = [];
+        if (resolved?.missing?.length) {
+          const nextGuests = resolved.missing.map((name) => ({ _id: `guest:${name}`, name, userId: "guest", isGuest: true }));
+          setGuestPlayers((prev) => {
+            const byId = new Map(prev.map((p) => [String(p._id), p]));
+            nextGuests.forEach((g) => byId.set(String(g._id), g));
+            return Array.from(byId.values());
+          });
+          unresolvedGuestIds = nextGuests.map((g) => String(g._id));
+          unresolvedGuestIds.forEach((id) => allIds.add(id));
+        }
+
+        // Keep unresolved guest handles in team allocation so they can be scored by name.
+        if (unresolvedGuestIds.length) {
+          unresolvedGuestIds.forEach((gid) => {
+            const inA = effectiveTeamAIds.has(gid);
+            const inB = effectiveTeamBIds.has(gid);
+            if (inA || inB) return;
+            if (effectiveTeamAIds.size <= effectiveTeamBIds.size) effectiveTeamAIds.add(gid);
+            else effectiveTeamBIds.add(gid);
+          });
+        }
       }
+
+      const teamAMemberIds = Array.from(effectiveTeamAIds).filter((id) => !String(id).startsWith("guest:"));
+      const teamBMemberIds = Array.from(effectiveTeamBIds).filter((id) => !String(id).startsWith("guest:"));
+      const teamAGuestMembers = Array.from(effectiveTeamAIds)
+        .filter((id) => String(id).startsWith("guest:"))
+        .map((id) => String(id).slice("guest:".length));
+      const teamBGuestMembers = Array.from(effectiveTeamBIds)
+        .filter((id) => String(id).startsWith("guest:"))
+        .map((id) => String(id).slice("guest:".length));
+
+      const formatCapWk = (id) => String(id).startsWith("guest:") ? { id: null, name: String(id).slice("guest:".length) } : { id: id || null, name: "" };
+      const capA = formatCapWk(captainA);
+      const capB = formatCapWk(captainB);
+      const wkAFormatted = formatCapWk(wkA);
+      const wkBFormatted = formatCapWk(wkB);
 
       const payload = {
         type,
         bookingId: type === "Turf" ? bookingId : null,
         oversPerInnings: Number(overs),
-        players: Array.from(allIds),
-        teamA: { name: "Team A", members: Array.from(teamAIds), captainId: captainA || null, wicketKeeperId: wkA || null },
-        teamB: { name: "Team B", members: Array.from(teamBIds), captainId: captainB || null, wicketKeeperId: wkB || null },
+        players: Array.from(allIds).filter((id) => !String(id).startsWith("guest:")),
+        teamA: {
+          name: teamAName || "Team A",
+          members: teamAMemberIds,
+          guestMembers: teamAGuestMembers,
+          captainId: capA.id,
+          captainName: capA.name,
+          wicketKeeperId: wkAFormatted.id,
+          wicketKeeperName: wkAFormatted.name,
+        },
+        teamB: {
+          name: teamBName || "Team B",
+          members: teamBMemberIds,
+          guestMembers: teamBGuestMembers,
+          captainId: capB.id,
+          captainName: capB.name,
+          wicketKeeperId: wkBFormatted.id,
+          wicketKeeperName: wkBFormatted.name,
+        },
       };
 
       const { match } = await matchService.create(token, payload);
@@ -210,7 +327,7 @@ export const MatchWizard = () => {
             {allSelectablePlayers.map((p) => {
               const id = String(p._id);
               const checked = selectedPlayerIds.has(id);
-              const locked = String(user?.id) === id;
+              const locked = String(user?._id || user?.id) === id;
               return (
                 <button
                   key={id}
@@ -229,12 +346,25 @@ export const MatchWizard = () => {
           <div className={styles.row}>
             <div className={styles.label}>Add members by typing their User ID (comma/newline)</div>
             <textarea className={styles.textarea} value={manualUserIds} onChange={(e) => setManualUserIds(e.target.value)} />
-            <div className={styles.muted}>Example: rohit_07, aman_11</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px" }}>
+              <div className={styles.muted}>Example: rohit_07, aman_11</div>
+              <button type="button" className={styles.ghostBtn} onClick={resolveManualPlayers} style={{ padding: "4px 12px", border: "1px solid var(--border)", background: "var(--bg-elevated)", color: "var(--text)" }}>Add to Player Pool</button>
+            </div>
           </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles.cardTitle}>Teams</div>
+          <div className={styles.row2}>
+            <div className={styles.row}>
+              <div className={styles.label}>Team A Name</div>
+              <input className={styles.input} type="text" value={teamAName} onChange={(e) => setTeamAName(e.target.value)} />
+            </div>
+            <div className={styles.row}>
+              <div className={styles.label}>Team B Name</div>
+              <input className={styles.input} type="text" value={teamBName} onChange={(e) => setTeamBName(e.target.value)} />
+            </div>
+          </div>
           <div className={styles.row2}>
             <div className={styles.row}>
               <div className={styles.label}>Mode</div>
@@ -252,7 +382,42 @@ export const MatchWizard = () => {
           </div>
 
           {teamMode === "Manual" ? (
-            <div className={styles.muted}>Manual picking UI is next; use Randomize for now.</div>
+            <div style={{ margin: "16px 0", padding: "16px", border: "1px solid var(--border)", borderRadius: "8px" }}>
+              <div className={styles.label} style={{ marginBottom: "12px" }}>Assign Players</div>
+              {selectedPlayers.length === 0 ? <div className={styles.muted}>No players selected.</div> : null}
+              {selectedPlayers.map((p) => {
+                const id = String(p._id);
+                const isA = teamAIds.has(id);
+                const isB = teamBIds.has(id);
+                return (
+                  <div key={id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <div>{p.name} {p.userId ? `@${p.userId}` : ""}</div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button 
+                        type="button" 
+                        className={isA ? styles.playerOn : styles.playerOff} 
+                        style={{ padding: "4px 12px", minWidth: "80px" }}
+                        onClick={() => {
+                          setTeamBIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+                          setTeamAIds(prev => { const next = new Set(prev); next.add(id); return next; });
+                        }}>
+                        Team A
+                      </button>
+                      <button 
+                        type="button" 
+                        className={isB ? styles.playerOn : styles.playerOff} 
+                        style={{ padding: "4px 12px", minWidth: "80px" }}
+                        onClick={() => {
+                          setTeamAIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+                          setTeamBIds(prev => { const next = new Set(prev); next.add(id); return next; });
+                        }}>
+                        Team B
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : null}
 
           <div className={styles.row2}>
@@ -314,6 +479,37 @@ export const MatchWizard = () => {
                   );
                 })}
               </select>
+            </div>
+          </div>
+
+          <div className={styles.row2}>
+            <div className={styles.row}>
+              <div className={styles.label}>Team A List</div>
+              <div className={styles.muted}>
+                {Array.from(teamAIds)
+                  .map((id) => {
+                    const p = allSelectablePlayers.find((x) => String(x._id) === String(id));
+                    if (!p) return null;
+                    const isCreator = String(p._id) === String(user?.id);
+                    return `${p.name}${isCreator ? " (creator)" : ""}`;
+                  })
+                  .filter(Boolean)
+                  .join(", ") || "No players selected"}
+              </div>
+            </div>
+            <div className={styles.row}>
+              <div className={styles.label}>Team B List</div>
+              <div className={styles.muted}>
+                {Array.from(teamBIds)
+                  .map((id) => {
+                    const p = allSelectablePlayers.find((x) => String(x._id) === String(id));
+                    if (!p) return null;
+                    const isCreator = String(p._id) === String(user?.id);
+                    return `${p.name}${isCreator ? " (creator)" : ""}`;
+                  })
+                  .filter(Boolean)
+                  .join(", ") || "No players selected"}
+              </div>
             </div>
           </div>
 

@@ -16,14 +16,31 @@ const userRoutes = require("./routes/userRoutes");
 const createApp = ({ clientOrigin }) => {
   const app = express();
 
+  const allowedOrigins = clientOrigin ? clientOrigin.split(',').map(o => o.trim()) : true;
   app.use(
     cors({
-      origin: clientOrigin || true,
+      origin: function (origin, callback) {
+        if (!origin || allowedOrigins === true || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else if (origin.startsWith('http://localhost:')) {
+          // allow any localhost port in development
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
     })
   );
   app.use(express.json({ limit: "1mb" }));
   app.use(morgan("dev"));
+
+  app.get("/", (req, res) => {
+    res.redirect(302, "/api/health");
+  });
+  app.head("/", (req, res) => {
+    res.status(204).end();
+  });
 
   app.get("/api/health", (req, res) => {
     res.json({ ok: true, name: "PitchSync API" });
