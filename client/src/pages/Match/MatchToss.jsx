@@ -9,6 +9,7 @@ export const MatchToss = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
   const [match, setMatch] = useState(null);
+  const { user } = useAuth();
   const [wonBy, setWonBy] = useState("A");
   const [decision, setDecision] = useState("Bat");
   const [error, setError] = useState("");
@@ -45,6 +46,11 @@ export const MatchToss = () => {
     }
   };
 
+  const isCaptain = match && (String(match.teamA?.captainId) === String(user?._id || user?.id) || String(match.teamB?.captainId) === String(user?._id || user?.id));
+  const isCreator = match && String(match.createdByUserId) === String(user?._id || user?.id);
+  const isChampionshipOwner = match && match.championshipId && String(match.championshipId.ownerId) === String(user?._id || user?.id);
+  const canDoToss = isCreator || isChampionshipOwner; // Turf owner (creator) performs the toss
+
   return (
     <section className={styles.wrap}>
       <div className={styles.header}>
@@ -57,25 +63,33 @@ export const MatchToss = () => {
       {loading ? <div className={styles.muted}>Loading…</div> : null}
       {match ? (
         <div className={styles.card}>
-          <div className={styles.row2}>
-            <div className={styles.row}>
-              <div className={styles.label}>Won by</div>
-              <select className={styles.input} value={wonBy} onChange={(e) => setWonBy(e.target.value)}>
-                <option value="A">{match?.teamA?.name || "Team A"}</option>
-                <option value="B">{match?.teamB?.name || "Team B"}</option>
-              </select>
+          {canDoToss ? (
+            <>
+              <div className={styles.row2}>
+                <div className={styles.row}>
+                  <div className={styles.label}>Won by</div>
+                  <select className={styles.input} value={wonBy} onChange={(e) => setWonBy(e.target.value)}>
+                    <option value="A">{match?.teamA?.name || "Team A"}</option>
+                    <option value="B">{match?.teamB?.name || "Team B"}</option>
+                  </select>
+                </div>
+                <div className={styles.row}>
+                  <div className={styles.label}>Decision</div>
+                  <select className={styles.input} value={decision} onChange={(e) => setDecision(e.target.value)}>
+                    <option value="Bat">Bat</option>
+                    <option value="Bowl">Bowl</option>
+                  </select>
+                </div>
+              </div>
+              <button className={styles.primary} onClick={submit}>
+                Start scoring
+              </button>
+            </>
+          ) : (
+            <div className={styles.muted} style={{ textAlign: "center", padding: "20px 0" }}>
+              Waiting for the Turf Owner to complete the toss...
             </div>
-            <div className={styles.row}>
-              <div className={styles.label}>Decision</div>
-              <select className={styles.input} value={decision} onChange={(e) => setDecision(e.target.value)}>
-                <option value="Bat">Bat</option>
-                <option value="Bowl">Bowl</option>
-              </select>
-            </div>
-          </div>
-          <button className={styles.primary} onClick={submit}>
-            Start scoring
-          </button>
+          )}
         </div>
       ) : null}
     </section>

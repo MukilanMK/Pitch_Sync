@@ -17,6 +17,19 @@ const createBooking = async (req, res, next) => {
       return res.status(400).json({ message: "timeSlot must be like HH:MM-HH:MM" });
     }
 
+    const now = new Date();
+    const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+    if (date < todayStr) {
+      return res.status(400).json({ message: "Cannot book slots in the past" });
+    } else if (date === todayStr) {
+      const [startTime] = timeSlot.split("-");
+      const currentHours = now.getHours().toString().padStart(2, "0");
+      const currentMinutes = now.getMinutes().toString().padStart(2, "0");
+      if (startTime < `${currentHours}:${currentMinutes}`) {
+        return res.status(400).json({ message: "Cannot book past time slots for today" });
+      }
+    }
+
     const turf = await Turf.findById(turfId);
     if (!turf) return res.status(404).json({ message: "Turf not found" });
 
@@ -104,6 +117,19 @@ const ownerCreateBooking = async (req, res, next) => {
     }
     if (!isValidTimeSlot(timeSlot)) {
       return res.status(400).json({ message: "timeSlot must be like HH:MM-HH:MM" });
+    }
+
+    const now = new Date();
+    const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+    if (date < todayStr) {
+      return res.status(400).json({ message: "Cannot book slots in the past" });
+    } else if (date === todayStr) {
+      const [startTime] = timeSlot.split("-");
+      const currentHours = now.getHours().toString().padStart(2, "0");
+      const currentMinutes = now.getMinutes().toString().padStart(2, "0");
+      if (startTime < `${currentHours}:${currentMinutes}`) {
+        return res.status(400).json({ message: "Cannot book past time slots for today" });
+      }
     }
 
     const turf = await Turf.findById(turfId);

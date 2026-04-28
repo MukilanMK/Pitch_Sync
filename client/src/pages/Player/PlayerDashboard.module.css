@@ -208,3 +208,82 @@
   font-weight: 700;
 }
 
+.notificationsSection {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  background: rgba(34, 211, 238, 0.05);
+  border: 1px solid var(--secondary-accent);
+  box-shadow: 0 4px 20px rgba(34, 211, 238, 0.15);
+  padding: 20px;
+  backdrop-filter: blur(16px);
+}
+
+.sectionHeader {
+  color: var(--secondary-accent);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bellIcon {
+  font-size: 24px;
+  filter: drop-shadow(0 0 8px var(--secondary-accent));
+}
+
+.notificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notificationCard {
+  border-radius: 12px;
+  background: var(--glass-bg);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  transition: all 0.2s ease;
+}
+
+.notificationCard:hover {
+  border-color: var(--secondary-accent);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+}
+
+.notificationTitle {
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.notificationSub {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.smallPrimary{
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: var(--secondary-success);
+  border: none;
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+  transition: all 0.2s;
+}
+.smallPrimary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.8);
+}
+

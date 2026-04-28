@@ -62,9 +62,23 @@ const applyParticipant = (inn, field, value) => {
   }
 };
 
+const canScore = (match, userId) => {
+  if (match.type === "Championship") {
+    return String(match.teamA.captainId) === String(userId) || String(match.teamB.captainId) === String(userId);
+  }
+  return String(match.createdByUserId) === String(userId);
+};
+
 const listMine = async (req, res, next) => {
   try {
-    const matches = await Match.find({ createdByUserId: req.user.id }).sort({ createdAt: -1 });
+    const matches = await Match.find({
+      $or: [
+        { createdByUserId: req.user.id },
+        { players: req.user.id }
+      ]
+    })
+    .populate("championshipId", "name turfId")
+    .sort({ createdAt: -1 });
     return res.json({ matches });
   } catch (err) {
     return next(err);
@@ -132,9 +146,13 @@ const getById = async (req, res, next) => {
       .populate("teamA.captainId", "name userId")
       .populate("teamB.captainId", "name userId")
       .populate("teamA.wicketKeeperId", "name userId")
-      .populate("teamB.wicketKeeperId", "name userId");
+      .populate("teamB.wicketKeeperId", "name userId")
+      .populate("championshipId", "name ownerId turfId");
     if (!match) return res.status(404).json({ message: "Match not found" });
-    if (String(match.createdByUserId) !== String(req.user.id)) return res.status(403).json({ message: "Forbidden" });
+    const isCreator = String(match.createdByUserId) === String(req.user.id);
+    const isChampionshipOwner = match.championshipId && String(match.championshipId.ownerId) === String(req.user.id);
+    const isPlayer = match.players.some(p => String(p._id || p) === String(req.user.id));
+    if (!isCreator && !isPlayer && !isChampionshipOwner) return res.status(403).json({ message: "Forbidden" });
     return res.json({ match });
   } catch (err) {
     return next(err);
@@ -146,7 +164,18 @@ const setToss = async (req, res, next) => {
     const { wonBy, decision } = req.body || {};
     const match = await Match.findById(req.params.id);
     if (!match) return res.status(404).json({ message: "Match not found" });
-    if (String(match.createdByUserId) !== String(req.user.id)) return res.status(403).json({ message: "Forbidden" });
+    
+    let isChampionshipOwner = false;
+    if (match.championshipId) {
+      const { Championship } = require("../models/Championship");
+      const championship = await Championship.findById(match.championshipId);
+      if (championship && String(championship.ownerId) === String(req.user.id)) {
+        isChampionshipOwner = true;
+      }
+    }
+    
+    const isCreator = String(match.createdByUserId) === String(req.user.id);
+    if (!isCreator && !isChampionshipOwner) return res.status(403).json({ message: "Only the match creator/owner can perform the toss" });
     if (!["A", "B"].includes(wonBy)) return res.status(400).json({ message: "wonBy must be A or B" });
     if (!["Bat", "Bowl"].includes(decision)) return res.status(400).json({ message: "decision must be Bat or Bowl" });
 
@@ -172,7 +201,7 @@ const setInningsPlayers = async (req, res, next) => {
     const { inningsIndex, strikerId, nonStrikerId, bowlerId } = req.body || {};
     const match = await Match.findById(req.params.id);
     if (!match) return res.status(404).json({ message: "Match not found" });
-    if (String(match.createdByUserId) !== String(req.user.id)) return res.status(403).json({ message: "Forbidden" });
+    if (!canScore(match, req.user.id)) return res.status(403).json({ message: "Forbidden" });
     const idx = Number(inningsIndex);
     if (![0, 1].includes(idx)) return res.status(400).json({ message: "inningsIndex must be 0 or 1" });
     if (!match.innings?.[idx]) return res.status(400).json({ message: "Innings not initialized. Set toss first." });
@@ -216,7 +245,7 @@ const addDelivery = async (req, res, next) => {
       req.body || {};
     const match = await Match.findById(req.params.id);
     if (!match) return res.status(404).json({ message: "Match not found" });
-    if (String(match.createdByUserId) !== String(req.user.id)) return res.status(403).json({ message: "Forbidden" });
+    if (!canScore(match, req.user.id)) return res.status(403).json({ message: "Forbidden" });
 
     const idx = Number(inningsIndex);
     const inn = match.innings?.[idx];
@@ -297,18 +326,71 @@ const addDelivery = async (req, res, next) => {
       inn.nonStrikerName = d.nonStrikerId ? "" : d.nonStrikerName || "";
     }
 
-    // wicket replacement (simple): if striker got out, require newBatterId
-    const outId = d.wicket.playerOutId ? String(d.wicket.playerOutId) : d.batterId ? String(d.batterId) : "";
-    const batterId = d.batterId ? String(d.batterId) : "";
-    if (isWicket && outId && batterId && outId === batterId) {
-      if (!newBatterId) return res.status(400).json({ message: "Select new batter for the wicket" });
-      const nextBatter = parsePlayerRef(newBatterId);
-      if (!nextBatter) return res.status(400).json({ message: "Invalid new batter" });
-      applyParticipant(inn, "striker", nextBatter);
+    // wicket replacement
+    if (isWicket) {
+      const outKey = d.wicket.playerOutId 
+        ? String(d.wicket.playerOutId) 
+        : d.wicket.playerOutName 
+          ? `guest:${d.wicket.playerOutName.toLowerCase()}` 
+          : participantKey(d.batterId, d.batterName);
+
+      const currentStrikerKey = participantKey(inn.strikerId, inn.strikerName);
+      const currentNonStrikerKey = participantKey(inn.nonStrikerId, inn.nonStrikerName);
+
+      // We require new batter if the out player is either the current striker or non-striker
+      if (outKey === currentStrikerKey || outKey === currentNonStrikerKey || !d.wicket.playerOutId) {
+        if (!newBatterId) return res.status(400).json({ message: "Select new batter for the wicket" });
+        
+        if (newBatterId === "ALL_OUT") {
+          inn.completed = true;
+          if (outKey === currentNonStrikerKey) {
+            inn.nonStrikerId = null;
+            inn.nonStrikerName = "";
+          } else if (outKey === currentStrikerKey) {
+            inn.strikerId = null;
+            inn.strikerName = "";
+          } else {
+             const origBatterKey = participantKey(d.batterId, d.batterName);
+             if (currentNonStrikerKey === origBatterKey) {
+               inn.nonStrikerId = null;
+               inn.nonStrikerName = "";
+             } else {
+               inn.strikerId = null;
+               inn.strikerName = "";
+             }
+          }
+        } else {
+          const nextBatter = parsePlayerRef(newBatterId);
+          if (!nextBatter) return res.status(400).json({ message: "Invalid new batter" });
+          
+          if (outKey === currentNonStrikerKey) {
+            applyParticipant(inn, "nonStriker", nextBatter);
+          } else if (outKey === currentStrikerKey) {
+            applyParticipant(inn, "striker", nextBatter);
+          } else {
+             // Fallback to original batter if not found
+             const origBatterKey = participantKey(d.batterId, d.batterName);
+             if (currentNonStrikerKey === origBatterKey) {
+               applyParticipant(inn, "nonStriker", nextBatter);
+             } else {
+               applyParticipant(inn, "striker", nextBatter);
+             }
+          }
+        }
+      }
     }
 
     const maxLegal = match.oversPerInnings * 6;
     if (inn.legalDeliveries >= maxLegal) inn.completed = true;
+
+    // Check if target is achieved (for the 2nd innings)
+    if (idx === 1) {
+      const target = match.innings[0].totalRuns + 1;
+      if (inn.totalRuns >= target) {
+        inn.completed = true;
+      }
+    }
+
     if (match.innings[0].completed && match.innings[1].completed) match.status = "Completed";
 
     await match.save();
@@ -327,7 +409,7 @@ const undoDelivery = async (req, res, next) => {
   try {
     const match = await Match.findById(req.params.id);
     if (!match) return res.status(404).json({ message: "Match not found" });
-    if (String(match.createdByUserId) !== String(req.user.id)) return res.status(403).json({ message: "Forbidden" });
+    if (!canScore(match, req.user.id)) return res.status(403).json({ message: "Forbidden" });
 
     if (!match.deliveries || match.deliveries.length === 0) {
       return res.status(400).json({ message: "No deliveries to undo" });
@@ -370,5 +452,66 @@ const undoDelivery = async (req, res, next) => {
   }
 };
 
-module.exports = { listMine, createMatch, getById, setToss, setInningsPlayers, addDelivery, undoDelivery };
+const handleScheduling = async (req, res, next) => {
+  try {
+    const { action } = req.body; // "accept", "reschedule", "cancel"
+    const match = await Match.findById(req.params.id);
+    if (!match) return res.status(404).json({ message: "Match not found" });
+
+    const isOwner = String(match.createdByUserId) === String(req.user.id);
+    const isTeamACaptain = String(match.teamA.captainId) === String(req.user.id);
+    const isTeamBCaptain = String(match.teamB.captainId) === String(req.user.id);
+
+    if (!isOwner && !isTeamACaptain && !isTeamBCaptain) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (action === "cancel" || action === "reject") {
+      match.status = "Cancelled";
+    } else if (action === "accept") {
+      if (isOwner) return res.status(400).json({ message: "Owners don't need to accept" });
+      if (match.status !== "PendingAcceptance" && match.status !== "RescheduleRequested") {
+         return res.status(400).json({ message: "Match is not pending acceptance" });
+      }
+      
+      if (isTeamACaptain) match.teamAAccepted = true;
+      if (isTeamBCaptain) match.teamBAccepted = true;
+
+      // If both accepted, move to Toss
+      if (match.teamAAccepted && match.teamBAccepted) {
+        match.status = "Toss";
+      } else {
+        match.status = "PendingAcceptance"; // In case it was RescheduleRequested and someone accepted
+      }
+    } else {
+      return res.status(400).json({ message: "Invalid action" });
+    }
+
+    await match.save();
+    return res.json({ message: `Match ${action}ed successfully`, match });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const listInvitations = async (req, res, next) => {
+  try {
+    const matches = await Match.find({
+      $or: [
+        { "teamA.captainId": req.user.id },
+        { "teamB.captainId": req.user.id }
+      ],
+      status: { $in: ["PendingAcceptance", "RescheduleRequested"] }
+    })
+    .populate("championshipId", "name turfId")
+    .populate("createdByUserId", "name")
+    .sort({ createdAt: -1 });
+
+    return res.json({ matches });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports = { listMine, createMatch, getById, setToss, setInningsPlayers, addDelivery, undoDelivery, handleScheduling, listInvitations };
 

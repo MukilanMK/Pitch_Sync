@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const MATCH_TYPES = ["Turf", "Local"];
+const MATCH_TYPES = ["Turf", "Local", "Championship"];
 const TOSS_DECISIONS = ["Bat", "Bowl"];
 
 const matchDeliverySchema = new mongoose.Schema(
@@ -79,6 +79,7 @@ const matchSchema = new mongoose.Schema(
   {
     type: { type: String, enum: MATCH_TYPES, required: true },
     bookingId: { type: mongoose.Schema.Types.ObjectId, ref: "Booking", default: null },
+    championshipId: { type: mongoose.Schema.Types.ObjectId, ref: "Championship", default: null },
     createdByUserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     oversPerInnings: { type: Number, required: true, min: 1, max: 50 },
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -88,9 +89,13 @@ const matchSchema = new mongoose.Schema(
       wonBy: { type: String, enum: ["A", "B"], default: null },
       decision: { type: String, enum: TOSS_DECISIONS, default: null },
     },
+    scheduledDate: { type: Date, default: null },
+    timeSlot: { type: String, trim: true, default: "" },
+    teamAAccepted: { type: Boolean, default: false },
+    teamBAccepted: { type: Boolean, default: false },
     innings: { type: [inningsSchema], default: [] },
     deliveries: { type: [matchDeliverySchema], default: [] },
-    status: { type: String, enum: ["Setup", "Toss", "Live", "Completed"], default: "Setup" },
+    status: { type: String, enum: ["PendingAcceptance", "RescheduleRequested", "Setup", "Toss", "Live", "Completed", "Cancelled"], default: "Setup" },
   },
   { timestamps: true }
 );

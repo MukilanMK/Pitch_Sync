@@ -6,6 +6,7 @@ const turfSchema = new mongoose.Schema(
     location: { type: String, required: true, trim: true, maxlength: 200 },
     pricePerHour: { type: Number, required: true, min: 0 },
     facilities: [{ type: String, trim: true }],
+    images: [{ type: String }],
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   },
   { timestamps: true }

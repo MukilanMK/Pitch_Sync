@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/useAuth";
+import { Link } from "react-router-dom";
 import { bookingService } from "../../services/bookingService";
 import { turfService } from "../../services/turfService";
+import { championshipService } from "../../services/championshipService";
 import styles from "./OwnerDashboard.module.css";
 
 export const OwnerDashboard = () => {
   const { token, user } = useAuth();
   const [turfs, setTurfs] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [championships, setChampionships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -23,15 +26,28 @@ export const OwnerDashboard = () => {
   const [quickName, setQuickName] = useState("");
   const [quickPhone, setQuickPhone] = useState("");
 
+  const [champName, setChampName] = useState("");
+  const [champTurfId, setChampTurfId] = useState("");
+  const [champStartDate, setChampStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [champEndDate, setChampEndDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [champEntryFee, setChampEntryFee] = useState(0);
+  const [champPrize, setChampPrize] = useState("");
+
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      const [turfData, bookingData] = await Promise.all([turfService.listMine(token), bookingService.listOwner(token)]);
+      const [turfData, bookingData, champData] = await Promise.all([
+        turfService.listMine(token), 
+        bookingService.listOwner(token),
+        championshipService.listOwner(token)
+      ]);
       const myTurfs = turfData.turfs || [];
       setTurfs(myTurfs);
       setBookings(bookingData.bookings || []);
+      setChampionships(champData.championships || []);
       setQuickTurfId((prev) => prev || myTurfs?.[0]?._id || "");
+      setChampTurfId((prev) => prev || myTurfs?.[0]?._id || "");
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load your turfs");
     } finally {
@@ -108,6 +124,33 @@ export const OwnerDashboard = () => {
     }
   };
 
+  const onCreateChamp = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    try {
+      if (!champTurfId) {
+        setError("Select a turf first.");
+        return;
+      }
+      await championshipService.create(token, {
+        name: champName,
+        turfId: champTurfId,
+        startDate: champStartDate,
+        endDate: champEndDate,
+        entryFee: Number(champEntryFee),
+        prize: champPrize,
+      });
+      setSuccess("Championship created.");
+      setChampName("");
+      setChampPrize("");
+      setChampEntryFee(0);
+      await load();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to create championship");
+    }
+  };
+
   return (
     <section>
       <div className={styles.header}>
@@ -151,6 +194,45 @@ export const OwnerDashboard = () => {
         </div>
 
         <div className={styles.card}>
+          <div className={styles.cardTitle}>Organize Championship</div>
+          <form className={styles.form} onSubmit={onCreateChamp}>
+            <div className={styles.row}>
+              <div className={styles.label}>Name</div>
+              <input className={styles.input} value={champName} onChange={(e) => setChampName(e.target.value)} required />
+            </div>
+            <div className={styles.row}>
+              <div className={styles.label}>Turf</div>
+              <select className={styles.input} value={champTurfId} onChange={(e) => setChampTurfId(e.target.value)} required>
+                {turfs.map((t) => (
+                  <option key={t._id} value={t._id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.row2}>
+              <div className={styles.row}>
+                <div className={styles.label}>Start Date</div>
+                <input className={styles.input} type="date" value={champStartDate} onChange={(e) => setChampStartDate(e.target.value)} required />
+              </div>
+              <div className={styles.row}>
+                <div className={styles.label}>End Date</div>
+                <input className={styles.input} type="date" value={champEndDate} onChange={(e) => setChampEndDate(e.target.value)} required />
+              </div>
+            </div>
+            <div className={styles.row2}>
+              <div className={styles.row}>
+                <div className={styles.label}>Entry Fee (₹)</div>
+                <input className={styles.input} type="number" value={champEntryFee} onChange={(e) => setChampEntryFee(e.target.value)} required />
+              </div>
+              <div className={styles.row}>
+                <div className={styles.label}>Prize</div>
+                <input className={styles.input} value={champPrize} onChange={(e) => setChampPrize(e.target.value)} />
+              </div>
+            </div>
+            <button className={styles.primary}>Create Championship</button>
+          </form>
+        </div>
+
+        <div className={styles.card}>
           <div className={styles.cardTitle}>My Turfs</div>
           {loading ? <div className={styles.muted}>Loading…</div> : null}
           <div className={styles.list}>
@@ -164,6 +246,25 @@ export const OwnerDashboard = () => {
               </div>
             ))}
             {!loading && turfs.length === 0 ? <div className={styles.muted}>No turfs yet.</div> : null}
+          </div>
+        </div>
+
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>My Championships</div>
+          {loading ? <div className={styles.muted}>Loading…</div> : null}
+          <div className={styles.list}>
+            {championships.map((c) => (
+              <div key={c._id} className={styles.listItem}>
+                <div>
+                  <div className={styles.itemName}>{c.name}</div>
+                  <div className={styles.itemSub}>{c.turfId?.name} • {c.status}</div>
+                </div>
+                <Link to={`/championships/${c._id}`} className={styles.smallPrimary}>
+                  Manage
+                </Link>
+              </div>
+            ))}
+            {!loading && championships.length === 0 ? <div className={styles.muted}>No championships yet.</div> : null}
           </div>
         </div>
 

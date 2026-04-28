@@ -6,9 +6,11 @@ export const turfService = {
     const { data } = await api.get("/turfs");
     return data;
   },
-  create: async (token, { name, location, pricePerHour, facilities }) => {
+  create: async (token, formData) => {
     const api = createApiClient({ token });
-    const { data } = await api.post("/turfs", { name, location, pricePerHour, facilities });
+    const { data } = await api.post("/turfs", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return data;
   },
   listMine: async (token) => {

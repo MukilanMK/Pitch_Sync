@@ -24,6 +24,12 @@ export const BrowseTurfs = () => {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const slots = buildHourlySlots({ startHour: 6, endHour: 23 });
   const [timeSlot, setTimeSlot] = useState("18:00-19:00");
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("All");
+  const [sortBy, setSortBy] = useState("None");
+
+  const todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
   useEffect(() => {
     let mounted = true;
@@ -60,6 +66,22 @@ export const BrowseTurfs = () => {
     }
   };
 
+  const locations = ["All", ...new Set(turfs.map(t => t.location).filter(Boolean))];
+
+  const filteredAndSortedTurfs = [...turfs]
+    .filter(t => {
+      const matchesSearch = t.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesLocation = selectedLocation === "All" || t.location === selectedLocation;
+      return matchesSearch && matchesLocation;
+    })
+    .sort((a, b) => {
+      if (sortBy === "Price: Low to High") return (a.pricePerHour || 0) - (b.pricePerHour || 0);
+      if (sortBy === "Price: High to Low") return (b.pricePerHour || 0) - (a.pricePerHour || 0);
+      if (sortBy === "Name: A-Z") return (a.name || "").localeCompare(b.name || "");
+      if (sortBy === "Name: Z-A") return (b.name || "").localeCompare(a.name || "");
+      return 0;
+    });
+
   return (
     <section>
       <div className={styles.header}>
@@ -73,7 +95,7 @@ export const BrowseTurfs = () => {
         {canBook ? (
           <div className={`glass-card ${styles.slot}`}>
             <div className={styles.slotLabel}>Slot</div>
-            <input className={styles.input} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input className={styles.input} type="date" min={todayStr} value={date} onChange={(e) => setDate(e.target.value)} />
             <select className={styles.input} value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
               {slots.map((s) => (
                 <option key={s} value={s}>
@@ -89,13 +111,51 @@ export const BrowseTurfs = () => {
         )}
       </div>
 
+      <div className={styles.filterBar}>
+        <div className={styles.filterGroup}>
+          <label className={styles.filterLabel}>Search Turf</label>
+          <input
+            className={styles.input}
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className={styles.filterGroup}>
+          <label className={styles.filterLabel}>Location</label>
+          <select
+            className={styles.input}
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+          >
+            {locations.map((loc) => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.filterGroup}>
+          <label className={styles.filterLabel}>Sort By</label>
+          <select
+            className={styles.input}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="None">None</option>
+            <option value="Name: A-Z">Name: A-Z</option>
+            <option value="Name: Z-A">Name: Z-A</option>
+            <option value="Price: Low to High">Price: Low to High</option>
+            <option value="Price: High to Low">Price: High to Low</option>
+          </select>
+        </div>
+      </div>
+
       {bookingMsg ? <div className={styles.success}>{bookingMsg}</div> : null}
       {error ? <div className={styles.error}>{error}</div> : null}
 
       {loading ? <div className={styles.muted}>Loading turfs…</div> : null}
 
       <div className={styles.grid}>
-        {turfs.map((t) => (
+        {filteredAndSortedTurfs.map((t) => (
           <TurfCard
             key={t._id}
             turf={t}

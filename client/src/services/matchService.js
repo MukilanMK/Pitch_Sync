@@ -36,5 +36,15 @@ export const matchService = {
     const { data } = await api.post(`/matches/${id}/deliveries/undo`);
     return data;
   },
+  listInvitations: async (token) => {
+    const api = createApiClient({ token });
+    const { data } = await api.get("/matches/invitations");
+    return data;
+  },
+  handleScheduling: async (token, id, payload) => {
+    const api = createApiClient({ token });
+    const { data } = await api.patch(`/matches/${id}/scheduling`, payload);
+    return data;
+  },
 };
 

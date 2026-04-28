@@ -7,11 +7,21 @@ const createTurf = async (req, res, next) => {
       return res.status(400).json({ message: "name, location, pricePerHour are required" });
     }
 
+    let facilitiesArray = [];
+    if (Array.isArray(facilities)) {
+      facilitiesArray = facilities;
+    } else if (typeof facilities === "string") {
+      facilitiesArray = facilities.split(",").map(f => f.trim()).filter(Boolean);
+    }
+
+    const images = req.files ? req.files.map(file => file.path) : [];
+
     const turf = await Turf.create({
       name,
       location,
       pricePerHour,
-      facilities: Array.isArray(facilities) ? facilities : [],
+      facilities: facilitiesArray,
+      images,
       ownerId: req.user.id,
     });
 

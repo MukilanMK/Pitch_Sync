@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
-import { Home, LayoutDashboard, LogOut, Moon, Sun } from "lucide-react";
+import { Home, LayoutDashboard, LogOut, Moon, Sun, Trophy } from "lucide-react";
 import styles from "./Navbar.module.css";
 
 export const Navbar = () => {
@@ -17,7 +17,7 @@ export const Navbar = () => {
   return (
     <header className={styles.wrap}>
       <div className={styles.inner}>
-        <Link to="/" className={styles.brand}>
+        <Link to={user?.role === "Owner" ? "/owner" : "/"} className={styles.brand}>
           <span className={styles.brandMark} />
           <span>PitchSync</span>
         </Link>
@@ -30,10 +30,10 @@ export const Navbar = () => {
             </NavLink>
           ) : null}
 
-          {isAuthenticated && user?.role === "Owner" ? (
-            <NavLink to="/owner" className={({ isActive }) => (isActive ? styles.active : styles.link)} title="Owner Dashboard">
-              <LayoutDashboard size={20} className={styles.icon} />
-              <span className={styles.navText}>Dashboard</span>
+          {isAuthenticated && user?.role !== "Owner" ? (
+            <NavLink to="/championships" className={({ isActive }) => (isActive ? styles.active : styles.link)} title="Championships">
+              <Trophy size={20} className={styles.icon} />
+              <span className={styles.navText}>Championships</span>
             </NavLink>
           ) : null}
 

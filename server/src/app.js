@@ -12,6 +12,7 @@ const friendRoutes = require("./routes/friendRoutes");
 const matchRoutes = require("./routes/matchRoutes");
 const statsRoutes = require("./routes/statsRoutes");
 const userRoutes = require("./routes/userRoutes");
+const championshipRoutes = require("./routes/championshipRoutes");
 
 const createApp = ({ clientOrigin }) => {
   const app = express();
@@ -54,6 +55,7 @@ const createApp = ({ clientOrigin }) => {
   app.use("/api/matches", matchRoutes);
   app.use("/api/stats", statsRoutes);
   app.use("/api/users", userRoutes);
+  app.use("/api/championships", championshipRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
